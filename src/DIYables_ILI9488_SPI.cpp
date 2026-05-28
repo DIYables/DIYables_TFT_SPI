@@ -13,7 +13,10 @@
 DIYables_ILI9488_SPI::DIYables_ILI9488_SPI(uint16_t width, uint16_t height,
                                            int8_t cs_pin, int8_t dc_pin,
                                            int8_t rst_pin, SPIClass *spi_bus)
-  : DIYables_TFT_SPI(width, height, cs_pin, dc_pin, rst_pin, spi_bus) {}
+  : DIYables_TFT_SPI(width, height, cs_pin, dc_pin, rst_pin, spi_bus) {
+  _touch_invert_x = true;
+  _touch_invert_y = false;
+}
 
 uint32_t DIYables_ILI9488_SPI::getDefaultFreq() {
   return 24000000UL; // 24 MHz

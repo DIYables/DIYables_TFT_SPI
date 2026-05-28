@@ -39,6 +39,18 @@ uint16_t DIYables_XPT2046::readChannel(uint8_t cmd) {
   return ((uint16_t)hi << 5) | (lo >> 3);
 }
 
+// Pick the two of three samples that are closest to each other and return
+// their average. Discards the outlier, which is almost always a noise spike.
+// This is the same filter used by Paul Stoffregen's XPT2046_Touchscreen lib.
+static int16_t bestTwoAvg(int16_t a, int16_t b, int16_t c) {
+  int16_t dab = (a > b) ? (a - b) : (b - a);
+  int16_t dac = (a > c) ? (a - c) : (c - a);
+  int16_t dbc = (b > c) ? (b - c) : (c - b);
+  if (dab <= dac && dab <= dbc) return (int16_t)((a + b) >> 1);
+  if (dac <= dab && dac <= dbc) return (int16_t)((a + c) >> 1);
+  return (int16_t)((b + c) >> 1);
+}
+
 void DIYables_XPT2046::readSample(int16_t &x, int16_t &y, int16_t &z) {
   _spi->beginTransaction(SPISettings(XPT2046_SPI_FREQ, MSBFIRST, SPI_MODE0));
   digitalWrite(_cs, LOW);
@@ -55,15 +67,33 @@ void DIYables_XPT2046::readSample(int16_t &x, int16_t &y, int16_t &z) {
   if (z_calc > 4095) z_calc = 4095;
   z = (int16_t)z_calc;
 
-  // Oversample X and Y a few times and average for noise reduction.
-  const uint8_t SAMPLES = 3;
-  uint32_t sx = 0, sy = 0;
-  for (uint8_t i = 0; i < SAMPLES; ++i) {
-    sx += readChannel(XPT2046_CMD_READ_X);
-    sy += readChannel(XPT2046_CMD_READ_Y);
+  // If clearly not touched, skip the X/Y oversampling and return early with
+  // a power-down read. Saves SPI time and avoids reporting junk coordinates.
+  if (z_calc < pressureThreshhold) {
+    x = 0;
+    y = 0;
+    _spi->transfer(0x80); // power down between conversions
+    _spi->transfer(0x00);
+    _spi->transfer(0x00);
+    digitalWrite(_cs, HIGH);
+    _spi->endTransaction();
+    return;
   }
-  x = (int16_t)(sx / SAMPLES);
-  y = (int16_t)(sy / SAMPLES);
+
+  // The first sample after switching channels is always noisy on the
+  // XPT2046 — throw it away before taking the three real samples.
+  (void)readChannel(XPT2046_CMD_READ_X);
+
+  int16_t x0 = (int16_t)readChannel(XPT2046_CMD_READ_X);
+  int16_t y0 = (int16_t)readChannel(XPT2046_CMD_READ_Y);
+  int16_t x1 = (int16_t)readChannel(XPT2046_CMD_READ_X);
+  int16_t y1 = (int16_t)readChannel(XPT2046_CMD_READ_Y);
+  int16_t x2 = (int16_t)readChannel(XPT2046_CMD_READ_X);
+  int16_t y2 = (int16_t)readChannel(XPT2046_CMD_READ_Y);
+
+  // Best-two-of-three average rejects the worst outlier in each axis.
+  x = bestTwoAvg(x0, x1, x2);
+  y = bestTwoAvg(y0, y1, y2);
 
   // Final read with PD1=PD0=0 to power down between conversions.
   _spi->transfer(0x80); // dummy power-down command

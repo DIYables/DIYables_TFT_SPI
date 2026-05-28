@@ -65,6 +65,12 @@ public:
   void initTouch(uint8_t xp, uint8_t yp, uint8_t xm, uint8_t ym, uint16_t rx = 300);
   void initTouchSPI(uint8_t cs_pin, int8_t irq_pin = -1, SPIClass *spi_bus = nullptr);
   void setTouchCalibration(int min_x, int max_x, int min_y, int max_y);
+  // Flip the touch axes without touching the calibration numbers.
+  // Useful when two TFT modules share the same calibration but the
+  // touch sheet is mounted with opposite polarity on one of them.
+  void setTouchInvert(bool invert_x, bool invert_y);
+  void setTouchInvertX(bool invert);
+  void setTouchInvertY(bool invert);
   void setADCResolution(uint8_t bits);
   void readTouchRaw(int &x, int &y, int &z);
   bool getTouch(int &screenX, int &screenY);
@@ -95,6 +101,13 @@ protected:
   virtual void    initDriver() = 0;
   virtual uint8_t getRotationData(uint8_t r) = 0;
   virtual uint32_t getDefaultFreq() = 0;
+
+  // Default touch-axis inversion flags. Driver subclasses can override
+  // these in their constructor so that the same calibration values map
+  // correctly on panels whose touch sheet is mounted with opposite
+  // polarity (e.g. the landscape-native "ST7789" clones).
+  bool _touch_invert_x = false;
+  bool _touch_invert_y = false;
 
   // Default RGB565 (16-bit, 2 bytes/pixel) — override for other formats (e.g. ILI9488 RGB666)
   virtual void    writeColor(uint16_t color);

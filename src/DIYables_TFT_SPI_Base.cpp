@@ -299,6 +299,19 @@ void DIYables_TFT_SPI::setTouchCalibration(int min_x, int max_x,
   _touch_max_y = max_y;
 }
 
+void DIYables_TFT_SPI::setTouchInvert(bool invert_x, bool invert_y) {
+  _touch_invert_x = invert_x;
+  _touch_invert_y = invert_y;
+}
+
+void DIYables_TFT_SPI::setTouchInvertX(bool invert) {
+  _touch_invert_x = invert;
+}
+
+void DIYables_TFT_SPI::setTouchInvertY(bool invert) {
+  _touch_invert_y = invert;
+}
+
 void DIYables_TFT_SPI::setADCResolution(uint8_t bits) {
   if (_ts) _ts->setADCResolution(bits);
 }
@@ -337,6 +350,12 @@ bool DIYables_TFT_SPI::getTouch(int &screenX, int &screenY) {
   readTouchRaw(raw_x, raw_y, z);
 
   if (z > threshold) {
+    // Apply per-driver axis inversion before mapping. This lets two
+    // modules with the touch sheet mounted in opposite polarities share
+    // the same calibration values.
+    if (_touch_invert_x) raw_x = _touch_min_x + _touch_max_x - raw_x;
+    if (_touch_invert_y) raw_y = _touch_min_y + _touch_max_y - raw_y;
+
     // Calibration values are for portrait orientation (rotation 0).
     // raw_y is always the long dimension of the touch panel.
     // Map to current pixel orientation, matching MCUFRIEND_kbv convention.

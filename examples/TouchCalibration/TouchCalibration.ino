@@ -1,10 +1,10 @@
-﻿/*
+/*
   Touch Screen Calibration Example
   ---------------------------------
   This example measures the raw touch coordinates at all four screen corners
   and prints ready-to-use calibration values to the Serial Monitor.
 
-  It uses readTouchRaw() directly â€” it does NOT rely on getTouch() or any
+  It uses readTouchRaw() directly — it does NOT rely on getTouch() or any
   existing calibration values, so it works even when touch is completely broken.
 
   INSTRUCTIONS:
@@ -13,7 +13,7 @@
 
   2. Open the Serial Monitor (Ctrl+Shift+M) and set baud rate to 9600.
 
-  3. The screen shows a blinking red dot in each corner, numbered 1â€“4:
+  3. The screen shows a blinking red dot in each corner, numbered 1–4:
        1 = Top-left
        2 = Top-right
        3 = Bottom-right
@@ -58,7 +58,7 @@
 //   SDO / MISO ->  D12  (only needed when reading from display)
 //   LED        ->  3.3V (or any GPIO via initBacklight)
 //
-// XPT2046 / ADS7843 SPI touch controller
+// XPT2046 / HR2046 / ADS7843 SPI touch controller
 // (modules with pins: T_CS, T_CLK, T_DIN, T_DO, T_IRQ)
 //   Touch pin      Arduino Uno / Nano
 //   ------------   ---------------------------------
@@ -81,10 +81,10 @@
 #define TFT_HEIGHT  320
 
 // =============================================
-// Touch pin definitions (XPT2046 SPI touch controller)
+// Touch pin definitions (XPT2046 / HR2046 SPI touch controller)
 // =============================================
 #define TOUCH_CS_PIN    7   // T_CS  (any GPIO)
-#define TOUCH_IRQ_PIN   2   // T_IRQ (any GPIO, or -1 if not connected)
+#define TOUCH_IRQ_PIN   -1  // T_IRQ (any GPIO, or -1 if not connected)
 // =============================================
 
 // =============================================
@@ -109,7 +109,7 @@ DIYables_ST7789_SPI  TFT_display(TFT_WIDTH, TFT_HEIGHT, TFT_CS_PIN, TFT_DC_PIN, 
 #define WHITE DIYables_TFT_SPI::colorRGB(255, 255, 255)
 #define RED   DIYables_TFT_SPI::colorRGB(255,   0,   0)
 
-// Corner pixel positions â€” filled in setup() once display size is known.
+// Corner pixel positions — filled in setup() once display size is known.
 // Order: 0=top-left, 1=top-right, 2=bottom-right, 3=bottom-left
 int cx[4], cy[4];
 
@@ -196,6 +196,12 @@ void setup() {
   TFT_display.fillScreen(WHITE);
 
   TFT_display.initTouchSPI(TOUCH_CS_PIN, TOUCH_IRQ_PIN);
+
+  // If touch X is mirrored on your board, uncomment the line below
+  // BEFORE calibrating (so the printed values match your panel):
+  //TFT_display.setTouchInvertX(true);
+  // If touch Y is mirrored on your board, uncomment:
+  //TFT_display.setTouchInvertY(false);
 
   int w = TFT_display.width();
   int h = TFT_display.height();

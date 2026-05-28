@@ -1,4 +1,4 @@
-﻿/*
+/*
   Touch Draw Lines Example
   -------------------------
   Draws lines on the screen following the pen.
@@ -39,7 +39,7 @@
 //   SDO / MISO ->  D12  (only needed when reading from display)
 //   LED        ->  3.3V (or any GPIO via initBacklight)
 //
-// XPT2046 / ADS7843 SPI touch controller
+// XPT2046 / HR2046 / ADS7843 SPI touch controller
 // (modules with pins: T_CS, T_CLK, T_DIN, T_DO, T_IRQ)
 //   Touch pin      Arduino Uno / Nano
 //   ------------   ---------------------------------
@@ -62,17 +62,17 @@
 #define TFT_HEIGHT  320
 
 // =============================================
-// Touch pin definitions (XPT2046 SPI touch controller)
+// Touch pin definitions (XPT2046 / HR2046 SPI touch controller)
 // =============================================
 #define TOUCH_CS_PIN    7   // T_CS  (any GPIO)
-#define TOUCH_IRQ_PIN   2   // T_IRQ (any GPIO, or -1 if not connected)
+#define TOUCH_IRQ_PIN   -1  // T_IRQ (any GPIO, or -1 if not connected)
 // =============================================
 
 // =============================================
 // Calibration values.
 // Run the TouchCalibration example and update these if touch is inaccurate.
 // Typical raw ranges:
-//   - XPT2046          : ~200..3900  (default below)
+//   - XPT2046 / HR2046 : ~200..3900  (default below)
 //   - 4-wire resistive : ~100..900
 // =============================================
 #define TOUCH_LEFT_X   300
@@ -98,6 +98,11 @@ void setup() {
   TFT_display.fillScreen(WHITE);
 
   TFT_display.initTouchSPI(TOUCH_CS_PIN, TOUCH_IRQ_PIN);
+
+  // If touch X is mirrored on your board, uncomment:
+  //TFT_display.setTouchInvertX(true);
+  // If touch Y is mirrored on your board, uncomment:
+  //TFT_display.setTouchInvertY(false);
 
   TFT_display.setTouchCalibration(TOUCH_LEFT_X, TOUCH_RIGHT_X,
                                    TOUCH_TOP_Y,  TOUCH_BOT_Y);

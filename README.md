@@ -1,12 +1,12 @@
 ## TFT LCD Touch Display Library for Arduino to work with SPI TFT LCD Displays - DIYables_TFT_SPI
-This Arduino library provides an easy-to-use interface for **SPI TFT LCD displays** based on the **ILI9341**, **ILI9488**, and **ST7789** driver ICs, with optional **XPT2046 / ADS7843** SPI touch controller support.
+This Arduino library provides an easy-to-use interface for **SPI TFT LCD displays** based on the **ILI9341**, **ILI9488**, and **ST7789** driver ICs, with optional **XPT2046 / HR2046 / ADS7843** SPI touch controller support.
 It enables fast and reliable graphics, text, and image rendering on common 1.3" – 3.5" SPI TFT modules.
 
-**Works with both touch and non-touch versions** of the same SPI TFT modules — use the display-only API for non-touch panels, and add `initTouchSPI()` for modules that include the XPT2046 / ADS7843 touch controller.
+**Works with both touch and non-touch versions** of the same SPI TFT modules — use the display-only API for non-touch panels, and add `initTouchSPI()` for modules that include the XPT2046 / HR2046 / ADS7843 touch controller.
 
 * Fully extends the Adafruit GFX library, giving you access to all standard graphics and text functions.
 * Three driver classes (`DIYables_ILI9341_SPI`, `DIYables_ILI9488_SPI`, `DIYables_ST7789_SPI`) sharing a common API — switch chips by changing one line.
-* Built-in support for the **XPT2046 / ADS7843** SPI touch controller commonly found on these modules — no separate touch library required.
+* Built-in support for the **XPT2046 / HR2046 / ADS7843** SPI touch controller commonly found on these modules — no separate touch library required.
 * Compatible with a wide range of boards, including Arduino Uno R3, Uno R4 WiFi/Minima, Nano, Mega, Giga R1 WiFi, MKR WiFi 1010, Nano 33 IoT, Nano ESP32, ESP32, and ESP8266.
 
 With this library, you can easily create colorful, high-resolution graphical interfaces — menus, dashboards, image viewers, touch buttons — for your Arduino, ESP32, ESP8266, or SAMD-based projects.
@@ -32,7 +32,7 @@ The library supports three popular SPI TFT controllers:
 
 Product Link
 ----------------------------
-* [DIYables SPI TFT LCD Display Modules](https://diyables.io/products/diyables-2.4-inch-tft-lcd-display-module-320x240-spi-st7789-color-screen-no-touch)
+* [DIYables SPI TFT LCD Display Modules](https://diyables.io/categories/tft-spi)
 
 
 
@@ -42,7 +42,7 @@ Features
 * Hardware SPI on any SPI bus (`SPI`, `SPI1`, `HSPI`, or user-defined `SPIClass` instances on ESP32).
 * Backlight control with optional **PWM dimming** (`setBacklight(0..255)`).
 * **Two touch backends** sharing the same `getTouch()` / `readTouchRaw()` API:
-  * **XPT2046 / ADS7843** SPI touch controller — pins labeled `T_CS`, `T_CLK`, `T_DIN`, `T_DO`, `T_IRQ` (touch IC shares the display's SPI bus).
+  * **XPT2046 / HR2046 / ADS7843** SPI touch controller — pins labeled `T_CS`, `T_CLK`, `T_DIN`, `T_DO`, `T_IRQ` (touch IC shares the display's SPI bus).
   * **4-wire bare resistive** panel — pins labeled `XP`/`X+`, `YP`/`Y+`, `XM`/`X-`, `YM`/`Y-`.
 * SD-card image loading example using the same shared SPI bus.
 * Touch calibration utility example.
@@ -106,4 +106,4 @@ Supported and Tested Hardware
 
 
 
-**Note**: This library is designed for **SPI** TFT LCD modules (ILI9341, ILI9488, ST7789 — typically labeled with pins `CS`, `DC`, `RST`, `MOSI`, `SCK`, `MISO`, and optionally `T_CS`/`T_CLK`/`T_DIN`/`T_DO`/`T_IRQ` for the XPT2046 touch controller). If you are using a **parallel-interface 3.5" TFT Touch Shield** (28-pin Arduino shield form factor with ILI9488 or RM68140 driver), please use the [DIYables TFT Touch Shield Library](https://github.com/DIYables/DIYables_TFT_Touch_Shield) instead.
+**Note**: This library is designed for **SPI** TFT LCD modules (ILI9341, ILI9488, ST7789 — typically labeled with pins `CS`, `DC`, `RST`, `MOSI`, `SCK`, `MISO`, and optionally `T_CS`/`T_CLK`/`T_DIN`/`T_DO`/`T_IRQ` for the XPT2046 / HR2046 touch controller). If you are using a **parallel-interface 3.5" TFT Touch Shield** (28-pin Arduino shield form factor with ILI9488 or RM68140 driver), please use the [DIYables TFT Touch Shield Library](https://github.com/DIYables/DIYables_TFT_Touch_Shield) instead.
