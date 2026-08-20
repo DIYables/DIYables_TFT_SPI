@@ -1,4 +1,4 @@
-﻿/*
+/*
  * DIYables_TFT_SPI.h - Umbrella header for the DIYables TFT SPI library.
  *
  * Sketches only need this single include to get the base class and all

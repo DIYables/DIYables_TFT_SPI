@@ -33,6 +33,11 @@ colorRGB	KEYWORD2
 initTouch	KEYWORD2
 initTouchSPI	KEYWORD2
 setTouchCalibration	KEYWORD2
+setTouchInvert	KEYWORD2
+setTouchInvertX	KEYWORD2
+setTouchInvertY	KEYWORD2
+setTouchInvertScreenX	KEYWORD2
+setTouchInvertScreenY	KEYWORD2
 setADCResolution	KEYWORD2
 readTouchRaw	KEYWORD2
 getTouch	KEYWORD2

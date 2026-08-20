@@ -101,32 +101,53 @@ void DIYables_ILI9488_SPI::writeColor(uint16_t color) {
   spiWrite(b);
 }
 
+// Pixel bytes are batched into one block transfer per chunk - see
+// DIYABLES_TFT_SPI_CHUNK in DIYables_TFT_SPI_Base.h. The buffer is refilled
+// every pass because the transfer clobbers it with the received data.
+
 void DIYables_ILI9488_SPI::fillColor(uint16_t color, uint32_t count) {
   uint8_t r, g, b;
   rgb565_to_666(color, r, g, b);
-  while (count--) {
-    spiWrite(r);
-    spiWrite(g);
-    spiWrite(b);
+
+  uint8_t buf[DIYABLES_TFT_SPI_CHUNK];
+  const uint16_t max_pixels = DIYABLES_TFT_SPI_CHUNK / 3;
+
+  while (count) {
+    uint16_t n = (count > max_pixels) ? max_pixels : (uint16_t)count;
+    for (uint16_t i = 0; i < n; i++) {
+      buf[i * 3]     = r;
+      buf[i * 3 + 1] = g;
+      buf[i * 3 + 2] = b;
+    }
+    spiWriteBlock(buf, (size_t)n * 3);
+    count -= n;
   }
 }
 
 void DIYables_ILI9488_SPI::pushColorData(uint16_t *data, uint32_t len) {
-  uint8_t r, g, b;
-  while (len--) {
-    rgb565_to_666(*data++, r, g, b);
-    spiWrite(r);
-    spiWrite(g);
-    spiWrite(b);
+  uint8_t buf[DIYABLES_TFT_SPI_CHUNK];
+  const uint16_t max_pixels = DIYABLES_TFT_SPI_CHUNK / 3;
+
+  while (len) {
+    uint16_t n = (len > max_pixels) ? max_pixels : (uint16_t)len;
+    for (uint16_t i = 0; i < n; i++) {
+      rgb565_to_666(*data++, buf[i * 3], buf[i * 3 + 1], buf[i * 3 + 2]);
+    }
+    spiWriteBlock(buf, (size_t)n * 3);
+    len -= n;
   }
 }
 
 void DIYables_ILI9488_SPI::pushColorDataPGM(const uint16_t *data, uint32_t len) {
-  uint8_t r, g, b;
-  while (len--) {
-    rgb565_to_666(pgm_read_word(data++), r, g, b);
-    spiWrite(r);
-    spiWrite(g);
-    spiWrite(b);
+  uint8_t buf[DIYABLES_TFT_SPI_CHUNK];
+  const uint16_t max_pixels = DIYABLES_TFT_SPI_CHUNK / 3;
+
+  while (len) {
+    uint16_t n = (len > max_pixels) ? max_pixels : (uint16_t)len;
+    for (uint16_t i = 0; i < n; i++) {
+      rgb565_to_666(pgm_read_word(data++), buf[i * 3], buf[i * 3 + 1], buf[i * 3 + 2]);
+    }
+    spiWriteBlock(buf, (size_t)n * 3);
+    len -= n;
   }
 }

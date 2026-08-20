@@ -105,6 +105,14 @@ void setup() {
   // If touch Y is mirrored on your board, uncomment:
   //TFT_display.setTouchInvertY(false);
 
+  // Some panels report the touch point on the opposite side of the screen:
+  // press on the left and it lands on the right, or press at the top and it
+  // lands at the bottom. These flip the point in SCREEN coordinates, so X is
+  // always the screen's X no matter what setRotation() is set to.
+  // Uncomment the one that matches what you see:
+  //TFT_display.setTouchInvertScreenX(true); // left <-> right
+  //TFT_display.setTouchInvertScreenY(true); // top  <-> bottom
+
   TFT_display.setTouchCalibration(TOUCH_LEFT_X, TOUCH_RIGHT_X,
                                    TOUCH_TOP_Y,  TOUCH_BOT_Y);
 

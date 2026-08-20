@@ -18,6 +18,28 @@
 #include "DIYables_TouchScreen.h"
 #include "DIYables_XPT2046.h"
 
+// Highest SPI clock the library will pick on its own.
+// The Arduino UNO Q (Zephyr core) drives the panel through Zephyr's STM32 SPI
+// driver, and the usual module wiring does not survive the 24-40 MHz the
+// drivers ask for: the init sequence arrives shifted and the panel stays dark.
+// 16 MHz is the fastest clock that reads back clean on that board, so the
+// per-driver default is capped there. An explicit begin(freq) is never capped.
+#if defined(ARDUINO_ARCH_ZEPHYR)
+  #define DIYABLES_TFT_SPI_MAX_DEFAULT_FREQ 16000000UL
+#endif
+
+// Size of the scratch buffer used to batch pixel bytes into a single SPI
+// block transfer. Sending one byte at a time is fine on AVR, but on cores
+// where SPI goes through a driver (the Zephyr core on the UNO Q turns every
+// byte into a complete SPI transaction) it is orders of magnitude slower.
+// Kept a multiple of 6 so it divides evenly for both RGB565 (2 bytes/pixel)
+// and RGB666 (3 bytes/pixel).
+#if defined(__AVR__)
+  #define DIYABLES_TFT_SPI_CHUNK 30
+#else
+  #define DIYABLES_TFT_SPI_CHUNK 96
+#endif
+
 class DIYables_TFT_SPI : public Adafruit_GFX {
 public:
   // Hardware SPI constructor (pass &SPI1, &HSPI, etc. for alternate SPI bus)
@@ -71,6 +93,15 @@ public:
   void setTouchInvert(bool invert_x, bool invert_y);
   void setTouchInvertX(bool invert);
   void setTouchInvertY(bool invert);
+  // Mirror the touch point in SCREEN space, i.e. after the rotation
+  // mapping. Use these when a press on the left is reported on the right
+  // (X), or a press at the top is reported at the bottom (Y).
+  // Difference from setTouchInvertX()/setTouchInvertY() above: those flip
+  // the raw panel axes BEFORE rotation is applied, so on a rotated screen
+  // "X" there may end up mirroring what the user sees as Y. These two
+  // always match the screen axes, whatever setRotation() is set to.
+  void setTouchInvertScreenX(bool invert);
+  void setTouchInvertScreenY(bool invert);
   void setADCResolution(uint8_t bits);
   void readTouchRaw(int &x, int &y, int &z);
   bool getTouch(int &screenX, int &screenY);
@@ -93,6 +124,9 @@ protected:
   SPIClass *_spi;
 
   void spiWrite(uint8_t val);
+  // Push len bytes in one bus transfer. The buffer is clobbered with the
+  // received data on most cores, so callers must refill it between calls.
+  void spiWriteBlock(uint8_t *buf, size_t len);
   void writeCommand(uint8_t cmd);
   void writeData8(uint8_t data);
   void writeData16(uint16_t data);
@@ -120,6 +154,8 @@ private:
   DIYables_XPT2046     *_ts_spi = nullptr; // XPT2046 SPI backend
   int _touch_min_x = 150, _touch_max_x = 880;
   int _touch_min_y = 120, _touch_max_y = 900;
+  bool _touch_screen_invert_x = false;
+  bool _touch_screen_invert_y = false;
   int8_t _led_pin = -1;
 };
 

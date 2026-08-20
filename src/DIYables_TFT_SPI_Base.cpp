@@ -22,6 +22,11 @@ DIYables_TFT_SPI::~DIYables_TFT_SPI() {
 
 void DIYables_TFT_SPI::begin(uint32_t freq) {
   _freq = freq ? freq : getDefaultFreq();
+#ifdef DIYABLES_TFT_SPI_MAX_DEFAULT_FREQ
+  if (!freq && _freq > DIYABLES_TFT_SPI_MAX_DEFAULT_FREQ) {
+    _freq = DIYABLES_TFT_SPI_MAX_DEFAULT_FREQ;
+  }
+#endif
 
   // Drive CS / DC to a known state BEFORE touching the SPI bus.
   // After pinMode(OUTPUT) the pin's level is whatever was last in the
@@ -47,6 +52,26 @@ void DIYables_TFT_SPI::begin(uint32_t freq) {
 
   _spi->begin();
 
+  // Re-apply the pin modes AFTER the SPI peripheral is up.
+  // Some cores mux the bus pins when SPI starts, and a control pin that the
+  // board maps to an SPI alternate function is taken over at that moment.
+  // On the Arduino UNO Q, for example, D10 is SPI2's hardware NSS: after
+  // SPI.begin() it is no longer a GPIO, so digitalWrite() on the CS pin
+  // stops reaching the pad and the display never sees its chip select.
+  // Claiming the pins again here hands them back to the GPIO controller.
+  // Harmless on cores that do not mux (AVR, ESP32, SAMD, ...).
+  // The display is still held in reset, so any glitch here is not seen.
+  if (_cs >= 0) {
+    pinMode(_cs, OUTPUT);
+    digitalWrite(_cs, HIGH);
+  }
+  pinMode(_dc, OUTPUT);
+  digitalWrite(_dc, HIGH);
+  if (_rst >= 0) {
+    pinMode(_rst, OUTPUT);
+    digitalWrite(_rst, LOW);
+  }
+
   // Hardware reset pulse (datasheet: low >= 10us, then >= 120ms before commands)
   if (_rst >= 0) {
     digitalWrite(_rst, HIGH);
@@ -66,6 +91,18 @@ void DIYables_TFT_SPI::begin(uint32_t freq) {
 
 void DIYables_TFT_SPI::spiWrite(uint8_t val) {
   _spi->transfer(val);
+}
+
+void DIYables_TFT_SPI::spiWriteBlock(uint8_t *buf, size_t len) {
+#if defined(ARDUINO_ARCH_SAM)
+  // On the Due, SPI.transfer(buf, len) drives its own hardware SS pin,
+  // which would fight the CS pin this library manages. Keep the byte loop.
+  for (size_t i = 0; i < len; i++) _spi->transfer(buf[i]);
+#elif defined(ESP8266)
+  _spi->writeBytes(buf, len); // write-only: leaves the buffer untouched
+#else
+  _spi->transfer(buf, len);
+#endif
 }
 
 void DIYables_TFT_SPI::startWrite() {
@@ -248,25 +285,50 @@ void DIYables_TFT_SPI::writeColor(uint16_t color) {
 void DIYables_TFT_SPI::fillColor(uint16_t color, uint32_t count) {
   uint8_t hi = color >> 8;
   uint8_t lo = color & 0xFF;
-  while (count--) {
-    spiWrite(hi);
-    spiWrite(lo);
+  uint8_t buf[DIYABLES_TFT_SPI_CHUNK];
+  const uint16_t max_pixels = DIYABLES_TFT_SPI_CHUNK / 2;
+
+  while (count) {
+    uint16_t n = (count > max_pixels) ? max_pixels : (uint16_t)count;
+    // Refilled every pass: the block transfer overwrites the buffer.
+    for (uint16_t i = 0; i < n; i++) {
+      buf[i * 2]     = hi;
+      buf[i * 2 + 1] = lo;
+    }
+    spiWriteBlock(buf, (size_t)n * 2);
+    count -= n;
   }
 }
 
 void DIYables_TFT_SPI::pushColorData(uint16_t *data, uint32_t len) {
-  while (len--) {
-    uint16_t c = *data++;
-    spiWrite(c >> 8);
-    spiWrite(c & 0xFF);
+  uint8_t buf[DIYABLES_TFT_SPI_CHUNK];
+  const uint16_t max_pixels = DIYABLES_TFT_SPI_CHUNK / 2;
+
+  while (len) {
+    uint16_t n = (len > max_pixels) ? max_pixels : (uint16_t)len;
+    for (uint16_t i = 0; i < n; i++) {
+      uint16_t c = *data++;
+      buf[i * 2]     = c >> 8;
+      buf[i * 2 + 1] = c & 0xFF;
+    }
+    spiWriteBlock(buf, (size_t)n * 2);
+    len -= n;
   }
 }
 
 void DIYables_TFT_SPI::pushColorDataPGM(const uint16_t *data, uint32_t len) {
-  while (len--) {
-    uint16_t c = pgm_read_word(data++);
-    spiWrite(c >> 8);
-    spiWrite(c & 0xFF);
+  uint8_t buf[DIYABLES_TFT_SPI_CHUNK];
+  const uint16_t max_pixels = DIYABLES_TFT_SPI_CHUNK / 2;
+
+  while (len) {
+    uint16_t n = (len > max_pixels) ? max_pixels : (uint16_t)len;
+    for (uint16_t i = 0; i < n; i++) {
+      uint16_t c = pgm_read_word(data++);
+      buf[i * 2]     = c >> 8;
+      buf[i * 2 + 1] = c & 0xFF;
+    }
+    spiWriteBlock(buf, (size_t)n * 2);
+    len -= n;
   }
 }
 
@@ -310,6 +372,14 @@ void DIYables_TFT_SPI::setTouchInvertX(bool invert) {
 
 void DIYables_TFT_SPI::setTouchInvertY(bool invert) {
   _touch_invert_y = invert;
+}
+
+void DIYables_TFT_SPI::setTouchInvertScreenX(bool invert) {
+  _touch_screen_invert_x = invert;
+}
+
+void DIYables_TFT_SPI::setTouchInvertScreenY(bool invert) {
+  _touch_screen_invert_y = invert;
 }
 
 void DIYables_TFT_SPI::setADCResolution(uint8_t bits) {
@@ -379,6 +449,12 @@ bool DIYables_TFT_SPI::getTouch(int &screenX, int &screenY) {
     }
     screenX = constrain(screenX, 0, width()  - 1);
     screenY = constrain(screenY, 0, height() - 1);
+
+    // Mirror in screen space, i.e. after the rotation mapping above, so
+    // these always flip the axis the user actually sees.
+    if (_touch_screen_invert_x) screenX = width()  - 1 - screenX;
+    if (_touch_screen_invert_y) screenY = height() - 1 - screenY;
+
     return true;
   }
   return false;
