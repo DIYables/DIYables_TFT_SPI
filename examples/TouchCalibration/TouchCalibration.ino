@@ -51,8 +51,8 @@
 //   VCC        ->  5V
 //   GND        ->  GND
 //   CS         ->  D10  (TFT_CS_PIN)
-//   RESET      ->  D8   (TFT_RST_PIN)
-//   DC / RS    ->  D9   (TFT_DC_PIN)
+//   RESET      ->  D9   (TFT_RST_PIN)
+//   DC / RS    ->  D8   (TFT_DC_PIN)
 //   SDI / MOSI ->  D11  (hardware SPI MOSI)
 //   SCK        ->  D13  (hardware SPI SCK)
 //   SDO / MISO ->  D12  (only needed when reading from display)
@@ -62,7 +62,7 @@
 // (modules with pins: T_CS, T_CLK, T_DIN, T_DO, T_IRQ)
 //   Touch pin      Arduino Uno / Nano
 //   ------------   ---------------------------------
-//   T_CS       ->  D7   (TOUCH_CS_PIN)
+//   T_CS       ->  D2   (TOUCH_CS_PIN)
 //   T_IRQ      ->  D2   (TOUCH_IRQ_PIN, optional - use -1 to skip)
 //   T_CLK      ->  D13  (shared with display SCK)
 //   T_DIN      ->  D11  (shared with display MOSI)
@@ -73,8 +73,8 @@
 // SPI pin definitions (adjust for your board)
 // =============================================
 #define TFT_CS_PIN   10
-#define TFT_DC_PIN    9
-#define TFT_RST_PIN   8
+#define TFT_DC_PIN    8
+#define TFT_RST_PIN   9
 
 // Panel resolution in native (portrait) orientation - change to match your module
 #define TFT_WIDTH   240
@@ -83,7 +83,7 @@
 // =============================================
 // Touch pin definitions (XPT2046 / HR2046 SPI touch controller)
 // =============================================
-#define TOUCH_CS_PIN    7   // T_CS  (any GPIO)
+#define TOUCH_CS_PIN    2   // T_CS  (any GPIO)
 #define TOUCH_IRQ_PIN   -1  // T_IRQ (any GPIO, or -1 if not connected)
 // =============================================
 

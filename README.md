@@ -46,7 +46,7 @@ Features
   * **4-wire bare resistive** panel — pins labeled `XP`/`X+`, `YP`/`Y+`, `XM`/`X-`, `YM`/`Y-`.
 * SD-card image loading example using the same shared SPI bus.
 * Touch calibration utility example.
-* Works with both 3.3V and 5V boards (Uno, Nano, Mega, Uno R4) — wire the module directly, no level converter needed.
+* Works with both 3.3V and 5V boards (Uno, Nano, Mega, Uno R4) — the modules have on-board level shifting, so direct wiring is tested and works; a 5V to 3.3V level converter is still the safer choice for permanent builds.
 
 
 
@@ -93,11 +93,11 @@ Supported and Tested Hardware
 
 | Board                                                                                                          | Tested | Logic Level | Notes                              |
 |----------------------------------------------------------------------------------------------------------------|:------:|:-----------:|------------------------------------|
-| Arduino Uno R3                                                                                                 |   ✅   |     5V      | Direct wiring                      |
-| Arduino Nano                                                                                                   |   ✅   |     5V      | Direct wiring                      |
-| Arduino Mega 2560                                                                                              |   ✅   |     5V      | Direct wiring                      |
-| Arduino Uno R4 Minima                                                                                          |   ✅   |     5V      | Direct wiring                      |
-| Arduino Uno R4 WiFi                                                                                            |   ✅   |     5V      | Direct wiring                      |
+| Arduino Uno R3                                                                                                 |   ✅   |     5V      | Direct wiring (converter optional)  |
+| Arduino Nano                                                                                                   |   ✅   |     5V      | Direct wiring (converter optional)  |
+| Arduino Mega 2560                                                                                              |   ✅   |     5V      | Direct wiring (converter optional)  |
+| Arduino Uno R4 Minima                                                                                          |   ✅   |     5V      | Direct wiring (converter optional)  |
+| Arduino Uno R4 WiFi                                                                                            |   ✅   |     5V      | Direct wiring (converter optional)  |
 | Arduino Uno Q                                                                                                  |   ✅   |    3.3V     | Direct wiring                      |
 | Arduino Giga R1 WiFi                                                                                           |   ✅   |    3.3V     | Direct wiring                      |
 | Arduino MKR WiFi 1010                                                                                          |   ✅   |    3.3V     | Direct wiring                      |

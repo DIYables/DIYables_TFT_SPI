@@ -21,8 +21,8 @@
 //   VCC        ->  5V
 //   GND        ->  GND
 //   CS         ->  D10  (TFT_CS_PIN)
-//   RESET      ->  D8   (TFT_RST_PIN)
-//   DC / RS    ->  D9   (TFT_DC_PIN)
+//   RESET      ->  D9   (TFT_RST_PIN)
+//   DC / RS    ->  D8   (TFT_DC_PIN)
 //   SDI / MOSI ->  D11  (hardware SPI MOSI)
 //   SCK        ->  D13  (hardware SPI SCK)
 //   LED        ->  3.3V (or any GPIO via initBacklight)
@@ -33,8 +33,8 @@
 // SPI pin definitions (adjust for your board)
 // =============================================
 #define TFT_CS_PIN   10
-#define TFT_DC_PIN    9
-#define TFT_RST_PIN   8
+#define TFT_DC_PIN    8
+#define TFT_RST_PIN   9
 
 // Panel resolution in native (portrait) orientation - change to match your module
 #define TFT_WIDTH   240
