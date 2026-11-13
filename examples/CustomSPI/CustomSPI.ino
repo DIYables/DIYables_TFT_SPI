@@ -3,7 +3,7 @@
 
    This example code is in the public domain
 
-   Product page: https://diyables.io
+   Product page: https://diyables.io/tft-spi
 
    This example demonstrates how to use a custom (non-default) SPI bus
    with the DIYables TFT SPI library. This is useful on boards that have
@@ -70,6 +70,7 @@
 // =============================================
 // DIYables_ILI9341_SPI TFT_display(TFT_WIDTH, TFT_HEIGHT, TFT_CS_PIN, TFT_DC_PIN, TFT_RST_PIN, MY_SPI);
 // DIYables_ILI9488_SPI TFT_display(TFT_WIDTH, TFT_HEIGHT, TFT_CS_PIN, TFT_DC_PIN, TFT_RST_PIN, MY_SPI);
+// DIYables_ST7796_SPI TFT_display(TFT_WIDTH, TFT_HEIGHT, TFT_CS_PIN, TFT_DC_PIN, TFT_RST_PIN, MY_SPI);
 DIYables_ST7789_SPI TFT_display(TFT_WIDTH, TFT_HEIGHT, TFT_CS_PIN, TFT_DC_PIN, TFT_RST_PIN, MY_SPI);
 
 #define BLACK   DIYables_TFT_SPI::colorRGB(0, 0, 0)

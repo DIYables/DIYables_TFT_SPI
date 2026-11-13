@@ -15,7 +15,7 @@
 
    This example code is in the public domain
 
-   Product page: https://diyables.io
+   Product page: https://diyables.io/tft-spi
 */
 
 // =============================================
@@ -48,6 +48,13 @@
 //   T_CLK      ->  D13  (shared with display SCK)
 //   T_DIN      ->  D11  (shared with display MOSI)
 //   T_DO       ->  D12  (shared with display MISO)
+//
+// NOTE: On some touch displays (e.g. some ST7796S / ILI9488 modules), the
+// display's SDO / MISO pin does not release the shared MISO line, so the
+// touch controller cannot answer and touch does not respond. If touch does
+// not work, unplug the display module's SDO / MISO wire (keep T_DO wired).
+// Display and touch keep working normally; SDO is only needed if your code
+// reads data back from the display (this library never does).
 // =============================================
 
 // =============================================
@@ -86,6 +93,7 @@
 // =============================================
 // DIYables_ILI9341_SPI TFT_display(TFT_WIDTH, TFT_HEIGHT, TFT_CS_PIN, TFT_DC_PIN, TFT_RST_PIN);
 // DIYables_ILI9488_SPI TFT_display(TFT_WIDTH, TFT_HEIGHT, TFT_CS_PIN, TFT_DC_PIN, TFT_RST_PIN);
+// DIYables_ST7796_SPI TFT_display(TFT_WIDTH, TFT_HEIGHT, TFT_CS_PIN, TFT_DC_PIN, TFT_RST_PIN);
 DIYables_ST7789_SPI  TFT_display(TFT_WIDTH, TFT_HEIGHT, TFT_CS_PIN, TFT_DC_PIN, TFT_RST_PIN);
 
 #define RED   DIYables_TFT_SPI::colorRGB(255,   0,   0)

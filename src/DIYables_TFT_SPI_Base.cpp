@@ -130,17 +130,46 @@ void DIYables_TFT_SPI::writeData16(uint16_t data) {
   spiWrite(data & 0xFF);
 }
 
+// ---- Init helpers (inside initDriver(), CS already low) ----
+
+void DIYables_TFT_SPI::sendCommand(uint8_t cmd, const uint8_t *data, uint8_t len) {
+  endWrite();   // CS high between commands
+  startWrite(); // CS low for this command
+  writeCommand(cmd);
+  for (uint8_t i = 0; i < len; i++) writeData8(data[i]);
+}
+
+void DIYables_TFT_SPI::sendInitTable(const uint8_t *table, bool cs_per_command) {
+  uint8_t cmd;
+  while ((cmd = pgm_read_byte(table++)) != DIYABLES_TFT_INIT_END) {
+    uint8_t n = pgm_read_byte(table++);
+    bool wait = (n & DIYABLES_TFT_INIT_DELAY) != 0;
+    n &= 0x7F;
+    if (cs_per_command) {
+      endWrite();
+      startWrite();
+    }
+    writeCommand(cmd);
+    while (n--) writeData8(pgm_read_byte(table++));
+    if (wait) {
+      uint8_t ms = pgm_read_byte(table++);
+      delay(ms == 255 ? 500 : ms);
+    }
+  }
+}
+
 // ---- Address window ----
 
 void DIYables_TFT_SPI::setAddrWindow(int16_t x0, int16_t y0,
                                        int16_t x1, int16_t y1) {
+  // _x_off / _y_off are 0 except on panels smaller than the controller RAM
   writeCommand(0x2A); // Column Address Set
-  writeData16(x0);
-  writeData16(x1);
+  writeData16(x0 + _x_off);
+  writeData16(x1 + _x_off);
 
   writeCommand(0x2B); // Row Address Set
-  writeData16(y0);
-  writeData16(y1);
+  writeData16(y0 + _y_off);
+  writeData16(y1 + _y_off);
 
   writeCommand(0x2C); // Memory Write
 }
@@ -167,15 +196,8 @@ void DIYables_TFT_SPI::fillScreen(uint16_t color) {
 
 void DIYables_TFT_SPI::fillRect(int16_t x, int16_t y,
                                   int16_t w, int16_t h, uint16_t color) {
-  if (x >= width() || y >= height() || w <= 0 || h <= 0) return;
-  if (x < 0) { w += x; x = 0; }
-  if (y < 0) { h += y; y = 0; }
-  if (x + w > width())  w = width()  - x;
-  if (y + h > height()) h = height() - y;
-
   startWrite();
-  setAddrWindow(x, y, x + w - 1, y + h - 1);
-  fillColor(color, (uint32_t)w * h);
+  writeFillRect(x, y, w, h, color); // clips to the screen
   endWrite();
 }
 
@@ -186,6 +208,7 @@ void DIYables_TFT_SPI::writeFillRect(int16_t x, int16_t y,
   if (y < 0) { h += y; y = 0; }
   if (x + w > width())  w = width()  - x;
   if (y + h > height()) h = height() - y;
+  if (w <= 0 || h <= 0) return; // entirely left of / above the screen
 
   setAddrWindow(x, y, x + w - 1, y + h - 1);
   fillColor(color, (uint32_t)w * h);
@@ -213,6 +236,7 @@ void DIYables_TFT_SPI::writeFastVLine(int16_t x, int16_t y,
 
 void DIYables_TFT_SPI::setRotation(uint8_t r) {
   Adafruit_GFX::setRotation(r);
+  updateOffsets();
   startWrite();
   writeCommand(0x36);
   writeData8(getRotationData(r));
@@ -220,8 +244,10 @@ void DIYables_TFT_SPI::setRotation(uint8_t r) {
 }
 
 void DIYables_TFT_SPI::invertDisplay(bool i) {
+  // Panels that need inversion to look normal flip the meaning.
+  bool on = invertedByDefault() ? !i : i;
   startWrite();
-  writeCommand(i ? 0x21 : 0x20);
+  writeCommand(on ? 0x21 : 0x20);
   endWrite();
 }
 
@@ -462,29 +488,30 @@ bool DIYables_TFT_SPI::getTouch(int &screenX, int &screenY) {
 
 // ---- Backlight (LED pin) control ----
 
-void DIYables_TFT_SPI::initBacklight(int8_t led_pin) {
+void DIYables_TFT_SPI::initBacklight(int8_t led_pin, bool active_low) {
   _led_pin = led_pin;
+  _led_active_low = active_low;
   if (_led_pin >= 0) {
     pinMode(_led_pin, OUTPUT);
-    digitalWrite(_led_pin, HIGH); // default: backlight on
+    backlightOn(); // default: backlight on
   }
 }
 
 void DIYables_TFT_SPI::backlightOn() {
-  if (_led_pin >= 0) digitalWrite(_led_pin, HIGH);
+  if (_led_pin >= 0) digitalWrite(_led_pin, _led_active_low ? LOW : HIGH);
 }
 
 void DIYables_TFT_SPI::backlightOff() {
-  if (_led_pin >= 0) digitalWrite(_led_pin, LOW);
+  if (_led_pin >= 0) digitalWrite(_led_pin, _led_active_low ? HIGH : LOW);
 }
 
 void DIYables_TFT_SPI::setBacklight(uint8_t brightness) {
   if (_led_pin < 0) return;
   if (brightness == 0) {
-    digitalWrite(_led_pin, LOW);
+    backlightOff();
   } else if (brightness == 255) {
-    digitalWrite(_led_pin, HIGH);
+    backlightOn();
   } else {
-    analogWrite(_led_pin, brightness);
+    analogWrite(_led_pin, _led_active_low ? 255 - brightness : brightness);
   }
 }

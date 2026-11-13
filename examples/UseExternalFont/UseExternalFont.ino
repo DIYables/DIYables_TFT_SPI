@@ -3,7 +3,7 @@
 
    This example code is in the public domain
 
-   Product page: https://diyables.io
+   Product page: https://diyables.io/tft-spi
 */
 
 // =============================================
@@ -45,6 +45,7 @@
 // =============================================
 // DIYables_ILI9341_SPI TFT_display(TFT_WIDTH, TFT_HEIGHT, TFT_CS_PIN, TFT_DC_PIN, TFT_RST_PIN);
 // DIYables_ILI9488_SPI TFT_display(TFT_WIDTH, TFT_HEIGHT, TFT_CS_PIN, TFT_DC_PIN, TFT_RST_PIN);
+// DIYables_ST7796_SPI TFT_display(TFT_WIDTH, TFT_HEIGHT, TFT_CS_PIN, TFT_DC_PIN, TFT_RST_PIN);
 DIYables_ST7789_SPI TFT_display(TFT_WIDTH, TFT_HEIGHT, TFT_CS_PIN, TFT_DC_PIN, TFT_RST_PIN);
 
 #define MAGENTA   DIYables_TFT_SPI::colorRGB(255, 0, 255)

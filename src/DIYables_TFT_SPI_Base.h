@@ -3,7 +3,8 @@
  *
  * Internal header. Do NOT include this directly from sketches.
  * Sketches should include <DIYables_TFT_SPI.h> instead, which exposes
- * this base class and all driver classes (ILI9341, ILI9488, ST7789).
+ * this base class and all driver classes (ILI9341, ILI9488, ST7789,
+ * ST7796, ST7735).
  *
  * Copyright (c) DIYables.io
  * Licensed under the MIT License.
@@ -39,6 +40,14 @@
 #else
   #define DIYABLES_TFT_SPI_CHUNK 96
 #endif
+
+// Init table format for DIYables_TFT_SPI::sendInitTable() (stored in PROGMEM):
+//   cmd, n, d1 .. dn                                 command with n data bytes
+//   cmd, n | DIYABLES_TFT_INIT_DELAY, d1 .. dn, ms   same, then wait ms
+//                                                    (255 = 500 ms)
+//   DIYABLES_TFT_INIT_END                            end of the table
+#define DIYABLES_TFT_INIT_DELAY 0x80
+#define DIYABLES_TFT_INIT_END   0x00
 
 class DIYables_TFT_SPI : public Adafruit_GFX {
 public:
@@ -109,7 +118,9 @@ public:
   // Backlight (LED pin) control.
   // Call initBacklight() once with the GPIO connected to the module's LED/BL
   // pin. Use a PWM-capable pin if you want analog dimming via setBacklight().
-  void initBacklight(int8_t led_pin);
+  // Pass active_low = true for modules whose backlight is on when BL is LOW
+  // (e.g. the 2.25" 76x284 bar display).
+  void initBacklight(int8_t led_pin, bool active_low = false);
   void backlightOn();
   void backlightOff();
   void setBacklight(uint8_t brightness); // 0 = off, 255 = full (PWM)
@@ -123,6 +134,12 @@ protected:
   uint32_t _freq;
   SPIClass *_spi;
 
+  // Position of the visible area inside the controller RAM for the current
+  // rotation; added to every address window. Stays 0 for panels that fill
+  // the RAM. Drivers for smaller panels (ST7735, the 76x284 ST7789) set it
+  // in updateOffsets().
+  uint8_t _x_off = 0, _y_off = 0;
+
   void spiWrite(uint8_t val);
   // Push len bytes in one bus transfer. The buffer is clobbered with the
   // received data on most cores, so callers must refill it between calls.
@@ -135,6 +152,23 @@ protected:
   virtual void    initDriver() = 0;
   virtual uint8_t getRotationData(uint8_t r) = 0;
   virtual uint32_t getDefaultFreq() = 0;
+
+  // Optional driver hooks. The defaults suit panels that fill the RAM.
+  // Set _x_off / _y_off for getRotation(). Called by setRotation(); drivers
+  // that override it also call it from their constructor.
+  virtual void    updateOffsets() {}
+  // true for panels that need display inversion ON to show normal colours.
+  // invertDisplay() then flips its meaning, so invertDisplay(false) is
+  // always the normal picture.
+  virtual bool    invertedByDefault() const { return false; }
+
+  // Init helpers, for use inside initDriver(). Each command gets its own
+  // CS pulse: some ST77xx panels re-sync their serial interface only while
+  // CS is high and ignore every command after a software reset otherwise.
+  // sendInitTable() takes a PROGMEM table (format above); pass
+  // cs_per_command = false to keep CS low for the whole table instead.
+  void sendCommand(uint8_t cmd, const uint8_t *data = nullptr, uint8_t len = 0);
+  void sendInitTable(const uint8_t *table, bool cs_per_command = true);
 
   // Default touch-axis inversion flags. Driver subclasses can override
   // these in their constructor so that the same calibration values map
@@ -157,6 +191,7 @@ private:
   bool _touch_screen_invert_x = false;
   bool _touch_screen_invert_y = false;
   int8_t _led_pin = -1;
+  bool   _led_active_low = false;
 };
 
 #endif // DIYABLES_TFT_SPI_BASE_H

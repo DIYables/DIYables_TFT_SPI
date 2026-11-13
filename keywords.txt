@@ -9,6 +9,8 @@ DIYables_TFT_SPI	KEYWORD1
 DIYables_ILI9341_SPI	KEYWORD1
 DIYables_ILI9488_SPI	KEYWORD1
 DIYables_ST7789_SPI	KEYWORD1
+DIYables_ST7796_SPI	KEYWORD1
+DIYables_ST7735_SPI	KEYWORD1
 DIYables_TouchScreen	KEYWORD1
 DIYables_XPT2046	KEYWORD1
 TSPoint	KEYWORD1
@@ -50,6 +52,7 @@ initBacklight	KEYWORD2
 backlightOn	KEYWORD2
 backlightOff	KEYWORD2
 setBacklight	KEYWORD2
+setPanelType	KEYWORD2
 #######################################
 # Syntax Coloring Map For DIYables_TFT_SPI
 #######################################

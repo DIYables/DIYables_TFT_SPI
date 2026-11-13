@@ -2,7 +2,8 @@
  * DIYables_TFT_SPI.h - Umbrella header for the DIYables TFT SPI library.
  *
  * Sketches only need this single include to get the base class and all
- * supported display drivers (ILI9341, ILI9488, ST7789) plus touch support.
+ * supported display drivers (ILI9341, ILI9488, ST7789, ST7796, ST7735) plus
+ * touch support.
  *
  *     #include <DIYables_TFT_SPI.h>
  *
@@ -10,6 +11,9 @@
  *     DIYables_ILI9341_SPI tft(240, 320, cs, dc, rst);
  *     DIYables_ILI9488_SPI tft(320, 480, cs, dc, rst);
  *     DIYables_ST7789_SPI  tft(240, 320, cs, dc, rst);
+ *     DIYables_ST7789_SPI  tft(76, 284, cs, dc, rst);   // 2.25" bar, no touch
+ *     DIYables_ST7796_SPI tft(320, 480, cs, dc, rst);
+ *     DIYables_ST7735_SPI  tft(128, 160, cs, dc, rst);  // no touch
  *
  * Copyright (c) DIYables.io
  * Licensed under the MIT License.
@@ -22,5 +26,7 @@
 #include "DIYables_ILI9341_SPI.h"
 #include "DIYables_ILI9488_SPI.h"
 #include "DIYables_ST7789_SPI.h"
+#include "DIYables_ST7796_SPI.h"
+#include "DIYables_ST7735_SPI.h"
 
 #endif // DIYABLES_TFT_SPI_UMBRELLA_H
